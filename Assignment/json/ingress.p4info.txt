@@ -1,0 +1,152 @@
+pkg_info {
+  arch: "v1model"
+}
+tables {
+  preamble {
+    id: 47604142
+    name: "MyIngress.ipv4Lpm"
+    alias: "ipv4Lpm"
+  }
+  match_fields {
+    id: 1
+    name: "hdr.ipv4.dstAddr"
+    bitwidth: 32
+    match_type: LPM
+  }
+  action_refs {
+    id: 29683729
+  }
+  action_refs {
+    id: 25652968
+  }
+  size: 512
+}
+tables {
+  preamble {
+    id: 41388941
+    name: "MyIngress.forTunnelMacrewrite"
+    alias: "forTunnelMacrewrite"
+  }
+  match_fields {
+    id: 1
+    name: "standard_metadata.egress_spec"
+    bitwidth: 9
+    match_type: EXACT
+  }
+  action_refs {
+    id: 18584716
+  }
+  action_refs {
+    id: 25652968
+  }
+  size: 512
+}
+tables {
+  preamble {
+    id: 50323762
+    name: "MyIngress.internalMacLookup"
+    alias: "internalMacLookup"
+  }
+  match_fields {
+    id: 1
+    name: "standard_metadata.egress_spec"
+    bitwidth: 9
+    match_type: EXACT
+  }
+  action_refs {
+    id: 26407428
+  }
+  action_refs {
+    id: 25652968
+  }
+  size: 512
+}
+tables {
+  preamble {
+    id: 50267390
+    name: "MyIngress.tunnel_label_selector"
+    alias: "tunnel_label_selector"
+  }
+  match_fields {
+    id: 1
+    name: "hdr.ipv4.dstAddr"
+    bitwidth: 32
+    match_type: EXACT
+  }
+  action_refs {
+    id: 18838324
+  }
+  action_refs {
+    id: 21999510
+  }
+  size: 8
+}
+actions {
+  preamble {
+    id: 25652968
+    name: "MyIngress.drop"
+    alias: "drop"
+  }
+}
+actions {
+  preamble {
+    id: 29683729
+    name: "MyIngress.forward"
+    alias: "forward"
+  }
+  params {
+    id: 1
+    name: "egressPort"
+    bitwidth: 9
+  }
+  params {
+    id: 2
+    name: "nextHopMac"
+    bitwidth: 48
+  }
+}
+actions {
+  preamble {
+    id: 18584716
+    name: "MyIngress.rewriteMacsForTunnel"
+    alias: "rewriteMacsForTunnel"
+  }
+  params {
+    id: 1
+    name: "srcAddr"
+    bitwidth: 48
+  }
+  params {
+    id: 2
+    name: "dstAddr"
+    bitwidth: 48
+  }
+}
+actions {
+  preamble {
+    id: 26407428
+    name: "MyIngress.rewriteMacs"
+    alias: "rewriteMacs"
+  }
+  params {
+    id: 1
+    name: "srcMac"
+    bitwidth: 48
+  }
+}
+actions {
+  preamble {
+    id: 18838324
+    name: "MyIngress.set_labels_tunnel1"
+    alias: "set_labels_tunnel1"
+  }
+}
+actions {
+  preamble {
+    id: 21999510
+    name: "MyIngress.set_labels_tunnel2"
+    alias: "set_labels_tunnel2"
+  }
+}
+type_info {
+}

@@ -1,0 +1,1668 @@
+{
+  "header_types" : [
+    {
+      "name" : "scalars_0",
+      "id" : 0,
+      "fields" : [
+        ["metadata.tunnel", 1, false],
+        ["metadata.nextHopMac", 48, false],
+        ["_padding_0", 7, false]
+      ]
+    },
+    {
+      "name" : "standard_metadata",
+      "id" : 1,
+      "fields" : [
+        ["ingress_port", 9, false],
+        ["egress_spec", 9, false],
+        ["egress_port", 9, false],
+        ["instance_type", 32, false],
+        ["packet_length", 32, false],
+        ["enq_timestamp", 32, false],
+        ["enq_qdepth", 19, false],
+        ["deq_timedelta", 32, false],
+        ["deq_qdepth", 19, false],
+        ["ingress_global_timestamp", 48, false],
+        ["egress_global_timestamp", 48, false],
+        ["mcast_grp", 16, false],
+        ["egress_rid", 16, false],
+        ["checksum_error", 1, false],
+        ["parser_error", 32, false],
+        ["priority", 3, false],
+        ["_padding", 3, false]
+      ]
+    },
+    {
+      "name" : "ethernet_t",
+      "id" : 2,
+      "fields" : [
+        ["dstAddr", 48, false],
+        ["srcAddr", 48, false],
+        ["etherType", 16, false]
+      ]
+    },
+    {
+      "name" : "ipv4_t",
+      "id" : 3,
+      "fields" : [
+        ["version", 4, false],
+        ["ihl", 4, false],
+        ["diffserv", 8, false],
+        ["totalLen", 16, false],
+        ["identification", 16, false],
+        ["flags", 3, false],
+        ["fragOffset", 13, false],
+        ["ttl", 8, false],
+        ["protocol", 8, false],
+        ["hdrChecksum", 16, false],
+        ["srcAddr", 32, false],
+        ["dstAddr", 32, false]
+      ]
+    },
+    {
+      "name" : "label_t",
+      "id" : 4,
+      "fields" : [
+        ["label", 16, false],
+        ["bos", 1, false],
+        ["padding", 7, false]
+      ]
+    }
+  ],
+  "headers" : [
+    {
+      "name" : "scalars",
+      "id" : 0,
+      "header_type" : "scalars_0",
+      "metadata" : true,
+      "pi_omit" : true
+    },
+    {
+      "name" : "standard_metadata",
+      "id" : 1,
+      "header_type" : "standard_metadata",
+      "metadata" : true,
+      "pi_omit" : true
+    },
+    {
+      "name" : "ethernet",
+      "id" : 2,
+      "header_type" : "ethernet_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "ipv4",
+      "id" : 3,
+      "header_type" : "ipv4_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "mslp_labels[0]",
+      "id" : 4,
+      "header_type" : "label_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "mslp_labels[1]",
+      "id" : 5,
+      "header_type" : "label_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "mslp_labels[2]",
+      "id" : 6,
+      "header_type" : "label_t",
+      "metadata" : false,
+      "pi_omit" : true
+    }
+  ],
+  "header_stacks" : [
+    {
+      "name" : "mslp_labels",
+      "id" : 0,
+      "header_type" : "label_t",
+      "size" : 3,
+      "header_ids" : [4, 5, 6]
+    }
+  ],
+  "header_union_types" : [],
+  "header_unions" : [],
+  "header_union_stacks" : [],
+  "field_lists" : [],
+  "errors" : [
+    ["NoError", 0],
+    ["PacketTooShort", 1],
+    ["NoMatch", 2],
+    ["StackOutOfBounds", 3],
+    ["HeaderTooShort", 4],
+    ["ParserTimeout", 5],
+    ["ParserInvalidArgument", 6]
+  ],
+  "enums" : [],
+  "parsers" : [
+    {
+      "name" : "parser",
+      "id" : 0,
+      "init_state" : "start",
+      "parse_states" : [
+        {
+          "name" : "start",
+          "id" : 0,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "regular",
+                  "value" : "ethernet"
+                }
+              ],
+              "op" : "extract"
+            }
+          ],
+          "transitions" : [
+            {
+              "type" : "hexstr",
+              "value" : "0x0800",
+              "mask" : null,
+              "next_state" : "parse_ipv4"
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x88b5",
+              "mask" : null,
+              "next_state" : "parse_mslp"
+            },
+            {
+              "type" : "default",
+              "value" : null,
+              "mask" : null,
+              "next_state" : null
+            }
+          ],
+          "transition_key" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "etherType"]
+            }
+          ]
+        },
+        {
+          "name" : "parse_mslp",
+          "id" : 1,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "stack",
+                  "value" : "mslp_labels"
+                }
+              ],
+              "op" : "extract"
+            }
+          ],
+          "transitions" : [
+            {
+              "type" : "default",
+              "value" : null,
+              "mask" : null,
+              "next_state" : "parse_ipv4"
+            }
+          ],
+          "transition_key" : []
+        },
+        {
+          "name" : "parse_ipv4",
+          "id" : 2,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "regular",
+                  "value" : "ipv4"
+                }
+              ],
+              "op" : "extract"
+            }
+          ],
+          "transitions" : [
+            {
+              "type" : "default",
+              "value" : null,
+              "mask" : null,
+              "next_state" : null
+            }
+          ],
+          "transition_key" : []
+        }
+      ]
+    }
+  ],
+  "parse_vsets" : [],
+  "deparsers" : [
+    {
+      "name" : "deparser",
+      "id" : 0,
+      "source_info" : {
+        "filename" : "p4/ingress.p4",
+        "line" : 292,
+        "column" : 8,
+        "source_fragment" : "MyDeparser"
+      },
+      "order" : ["ethernet", "mslp_labels[0]", "mslp_labels[1]", "mslp_labels[2]", "ipv4"],
+      "primitives" : []
+    }
+  ],
+  "meter_arrays" : [],
+  "counter_arrays" : [],
+  "register_arrays" : [],
+  "calculations" : [
+    {
+      "name" : "calc",
+      "id" : 0,
+      "source_info" : {
+        "filename" : "p4/ingress.p4",
+        "line" : 270,
+        "column" : 8,
+        "source_fragment" : "update_checksum( ..."
+      },
+      "algo" : "csum16",
+      "input" : [
+        {
+          "type" : "field",
+          "value" : ["ipv4", "version"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "ihl"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "diffserv"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "totalLen"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "identification"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "flags"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "fragOffset"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "ttl"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "protocol"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "srcAddr"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "dstAddr"]
+        }
+      ]
+    }
+  ],
+  "learn_lists" : [],
+  "actions" : [
+    {
+      "name" : "MyIngress.drop",
+      "id" : 0,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "mark_to_drop",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "standard_metadata"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 103,
+            "column" : 8,
+            "source_fragment" : "mark_to_drop(standard_metadata)"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "MyIngress.drop",
+      "id" : 1,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "mark_to_drop",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "standard_metadata"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 103,
+            "column" : 8,
+            "source_fragment" : "mark_to_drop(standard_metadata)"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "MyIngress.drop",
+      "id" : 2,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "mark_to_drop",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "standard_metadata"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 103,
+            "column" : 8,
+            "source_fragment" : "mark_to_drop(standard_metadata)"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "MyIngress.drop",
+      "id" : 3,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "mark_to_drop",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "standard_metadata"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 103,
+            "column" : 8,
+            "source_fragment" : "mark_to_drop(standard_metadata)"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "MyIngress.forward",
+      "id" : 4,
+      "runtime_data" : [
+        {
+          "name" : "egressPort",
+          "bitwidth" : 9
+        },
+        {
+          "name" : "nextHopMac",
+          "bitwidth" : 48
+        }
+      ],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_spec"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 0
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 108,
+            "column" : 8,
+            "source_fragment" : "standard_metadata.egress_spec = egressPort"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "metadata.nextHopMac"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 1
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 109,
+            "column" : 8,
+            "source_fragment" : "meta.nextHopMac = nextHopMac"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "dstAddr"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 1
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 110,
+            "column" : 8,
+            "source_fragment" : "hdr.ethernet.dstAddr = nextHopMac"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ipv4", "ttl"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "&",
+                  "left" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "+",
+                      "left" : {
+                        "type" : "field",
+                        "value" : ["ipv4", "ttl"]
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0xff"
+                      }
+                    }
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0xff"
+                  }
+                }
+              }
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 111,
+            "column" : 8,
+            "source_fragment" : "hdr.ipv4.ttl = hdr.ipv4.ttl - 1"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "MyIngress.rewriteMacsForTunnel",
+      "id" : 5,
+      "runtime_data" : [
+        {
+          "name" : "srcAddr",
+          "bitwidth" : 48
+        },
+        {
+          "name" : "dstAddr",
+          "bitwidth" : 48
+        }
+      ],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "dstAddr"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 1
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 130,
+            "column" : 8,
+            "source_fragment" : "hdr.ethernet.dstAddr = dstAddr"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "metadata.nextHopMac"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 1
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 131,
+            "column" : 8,
+            "source_fragment" : "meta.nextHopMac = dstAddr"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "srcAddr"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 0
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 132,
+            "column" : 8,
+            "source_fragment" : "hdr.ethernet.srcAddr = srcAddr"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "MyIngress.rewriteMacs",
+      "id" : 6,
+      "runtime_data" : [
+        {
+          "name" : "srcMac",
+          "bitwidth" : 48
+        }
+      ],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "srcAddr"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 0
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 151,
+            "column" : 8,
+            "source_fragment" : "hdr.ethernet.srcAddr = srcMac"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "MyIngress.set_labels_tunnel1",
+      "id" : 7,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "add_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "mslp_labels[2]"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 176,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[2]"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mslp_labels[2]", "label"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x4010"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 176,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[2] = {0x4010"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mslp_labels[2]", "bos"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x01"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 176,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[2] = {0x4010, 1"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mslp_labels[2]", "padding"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x00"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 176,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[2] = {0x4010, 1, 0"
+          }
+        },
+        {
+          "op" : "add_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "mslp_labels[2]"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 177,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[2].setValid()"
+          }
+        },
+        {
+          "op" : "add_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "mslp_labels[1]"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 179,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[1]"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mslp_labels[1]", "label"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x3020"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 179,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[1] = {0x3020"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mslp_labels[1]", "bos"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x00"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 179,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[1] = {0x3020, 0"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mslp_labels[1]", "padding"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x00"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 179,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[1] = {0x3020, 0, 0"
+          }
+        },
+        {
+          "op" : "add_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "mslp_labels[1]"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 180,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[1].setValid()"
+          }
+        },
+        {
+          "op" : "add_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "mslp_labels[0]"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 182,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[0]"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mslp_labels[0]", "label"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x2020"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 182,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[0] = {0x2020"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mslp_labels[0]", "bos"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x00"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 182,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[0] = {0x2020, 0"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mslp_labels[0]", "padding"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x00"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 182,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[0] = {0x2020, 0, 0"
+          }
+        },
+        {
+          "op" : "add_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "mslp_labels[0]"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 183,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[0].setValid()"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_spec"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x0002"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 185,
+            "column" : 8,
+            "source_fragment" : "standard_metadata.egress_spec = 2"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "MyIngress.set_labels_tunnel2",
+      "id" : 8,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "add_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "mslp_labels[2]"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 190,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[2]"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mslp_labels[2]", "label"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x4010"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 190,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[2] = {0x4010"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mslp_labels[2]", "bos"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x01"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 190,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[2] = {0x4010, 1"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mslp_labels[2]", "padding"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x00"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 190,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[2] = {0x4010, 1, 0"
+          }
+        },
+        {
+          "op" : "add_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "mslp_labels[2]"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 191,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[2].setValid()"
+          }
+        },
+        {
+          "op" : "add_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "mslp_labels[1]"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 193,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[1]"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mslp_labels[1]", "label"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x5020"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 193,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[1] = {0x5020"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mslp_labels[1]", "bos"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x00"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 193,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[1] = {0x5020, 0"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mslp_labels[1]", "padding"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x00"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 193,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[1] = {0x5020, 0, 0"
+          }
+        },
+        {
+          "op" : "add_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "mslp_labels[1]"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 194,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[1].setValid()"
+          }
+        },
+        {
+          "op" : "add_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "mslp_labels[0]"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 197,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[0]"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mslp_labels[0]", "label"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x6020"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 197,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[0] = {0x6020"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mslp_labels[0]", "bos"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x00"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 197,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[0] = {0x6020, 0"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mslp_labels[0]", "padding"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x00"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 197,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[0] = {0x6020, 0, 0"
+          }
+        },
+        {
+          "op" : "add_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "mslp_labels[0]"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 198,
+            "column" : 8,
+            "source_fragment" : "hdr.mslp_labels[0].setValid()"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_spec"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x0003"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 200,
+            "column" : 8,
+            "source_fragment" : "standard_metadata.egress_spec = 3"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "ingress216",
+      "id" : 9,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "etherType"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x88b5"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 6,
+            "column" : 26,
+            "source_fragment" : "0x88B5; ..."
+          }
+        }
+      ]
+    },
+    {
+      "name" : "ingress235",
+      "id" : 10,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "pop",
+          "parameters" : [
+            {
+              "type" : "header_stack",
+              "value" : "mslp_labels"
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x1"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 235,
+            "column" : 12,
+            "source_fragment" : "hdr.mslp_labels.pop_front(1)"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "etherType"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x0800"
+            }
+          ],
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 5,
+            "column" : 26,
+            "source_fragment" : "0x800; ..."
+          }
+        }
+      ]
+    }
+  ],
+  "pipelines" : [
+    {
+      "name" : "ingress",
+      "id" : 0,
+      "source_info" : {
+        "filename" : "p4/ingress.p4",
+        "line" : 97,
+        "column" : 8,
+        "source_fragment" : "MyIngress"
+      },
+      "init_table" : "node_2",
+      "tables" : [
+        {
+          "name" : "tbl_ingress216",
+          "id" : 0,
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 216,
+            "column" : 35,
+            "source_fragment" : "="
+          },
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [9],
+          "actions" : ["ingress216"],
+          "base_default_next" : "MyIngress.tunnel_label_selector",
+          "next_tables" : {
+            "ingress216" : "MyIngress.tunnel_label_selector"
+          },
+          "default_entry" : {
+            "action_id" : 9,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "MyIngress.tunnel_label_selector",
+          "id" : 1,
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 203,
+            "column" : 10,
+            "source_fragment" : "tunnel_label_selector"
+          },
+          "key" : [
+            {
+              "match_type" : "exact",
+              "name" : "hdr.ipv4.dstAddr",
+              "target" : ["ipv4", "dstAddr"],
+              "mask" : null
+            }
+          ],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 8,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [7, 8],
+          "actions" : ["MyIngress.set_labels_tunnel1", "MyIngress.set_labels_tunnel2"],
+          "base_default_next" : "MyIngress.forTunnelMacrewrite",
+          "next_tables" : {
+            "MyIngress.set_labels_tunnel1" : "MyIngress.forTunnelMacrewrite",
+            "MyIngress.set_labels_tunnel2" : "MyIngress.forTunnelMacrewrite"
+          },
+          "default_entry" : {
+            "action_id" : 7,
+            "action_const" : false,
+            "action_data" : [],
+            "action_entry_const" : false
+          }
+        },
+        {
+          "name" : "MyIngress.forTunnelMacrewrite",
+          "id" : 2,
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 135,
+            "column" : 10,
+            "source_fragment" : "forTunnelMacrewrite"
+          },
+          "key" : [
+            {
+              "match_type" : "exact",
+              "name" : "standard_metadata.egress_spec",
+              "target" : ["standard_metadata", "egress_spec"],
+              "mask" : null
+            }
+          ],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 512,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [5, 1],
+          "actions" : ["MyIngress.rewriteMacsForTunnel", "MyIngress.drop"],
+          "base_default_next" : null,
+          "next_tables" : {
+            "MyIngress.rewriteMacsForTunnel" : null,
+            "MyIngress.drop" : null
+          },
+          "default_entry" : {
+            "action_id" : 1,
+            "action_const" : false,
+            "action_data" : [],
+            "action_entry_const" : false
+          }
+        },
+        {
+          "name" : "tbl_ingress235",
+          "id" : 3,
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 235,
+            "column" : 12,
+            "source_fragment" : "hdr.mslp_labels.pop_front(1); ..."
+          },
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [10],
+          "actions" : ["ingress235"],
+          "base_default_next" : "MyIngress.ipv4Lpm",
+          "next_tables" : {
+            "ingress235" : "MyIngress.ipv4Lpm"
+          },
+          "default_entry" : {
+            "action_id" : 10,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "MyIngress.ipv4Lpm",
+          "id" : 4,
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 114,
+            "column" : 10,
+            "source_fragment" : "ipv4Lpm"
+          },
+          "key" : [
+            {
+              "match_type" : "lpm",
+              "name" : "hdr.ipv4.dstAddr",
+              "target" : ["ipv4", "dstAddr"],
+              "mask" : null
+            }
+          ],
+          "match_type" : "lpm",
+          "type" : "simple",
+          "max_size" : 512,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [4, 0],
+          "actions" : ["MyIngress.forward", "MyIngress.drop"],
+          "base_default_next" : null,
+          "next_tables" : {
+            "__MISS__" : null,
+            "__HIT__" : "MyIngress.internalMacLookup"
+          },
+          "default_entry" : {
+            "action_id" : 0,
+            "action_const" : false,
+            "action_data" : [],
+            "action_entry_const" : false
+          }
+        },
+        {
+          "name" : "MyIngress.internalMacLookup",
+          "id" : 5,
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 154,
+            "column" : 10,
+            "source_fragment" : "internalMacLookup"
+          },
+          "key" : [
+            {
+              "match_type" : "exact",
+              "name" : "standard_metadata.egress_spec",
+              "target" : ["standard_metadata", "egress_spec"],
+              "mask" : null
+            }
+          ],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 512,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [6, 2],
+          "actions" : ["MyIngress.rewriteMacs", "MyIngress.drop"],
+          "base_default_next" : null,
+          "next_tables" : {
+            "MyIngress.rewriteMacs" : null,
+            "MyIngress.drop" : null
+          },
+          "default_entry" : {
+            "action_id" : 2,
+            "action_const" : false,
+            "action_data" : [],
+            "action_entry_const" : false
+          }
+        },
+        {
+          "name" : "tbl_drop",
+          "id" : 6,
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 246,
+            "column" : 14,
+            "source_fragment" : "drop()"
+          },
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [3],
+          "actions" : ["MyIngress.drop"],
+          "base_default_next" : null,
+          "next_tables" : {
+            "MyIngress.drop" : null
+          },
+          "default_entry" : {
+            "action_id" : 3,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        }
+      ],
+      "action_profiles" : [],
+      "conditionals" : [
+        {
+          "name" : "node_2",
+          "id" : 0,
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 215,
+            "column" : 12,
+            "source_fragment" : "hdr.ethernet.etherType == TYPE_IPV4"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "==",
+              "left" : {
+                "type" : "field",
+                "value" : ["ethernet", "etherType"]
+              },
+              "right" : {
+                "type" : "hexstr",
+                "value" : "0x0800"
+              }
+            }
+          },
+          "true_next" : "tbl_ingress216",
+          "false_next" : "node_6"
+        },
+        {
+          "name" : "node_6",
+          "id" : 1,
+          "source_info" : {
+            "filename" : "p4/ingress.p4",
+            "line" : 233,
+            "column" : 17,
+            "source_fragment" : "hdr.ethernet.etherType == TYPE_MSLP"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "==",
+              "left" : {
+                "type" : "field",
+                "value" : ["ethernet", "etherType"]
+              },
+              "right" : {
+                "type" : "hexstr",
+                "value" : "0x88b5"
+              }
+            }
+          },
+          "true_next" : "tbl_ingress235",
+          "false_next" : "tbl_drop"
+        }
+      ]
+    },
+    {
+      "name" : "egress",
+      "id" : 1,
+      "source_info" : {
+        "filename" : "p4/ingress.p4",
+        "line" : 257,
+        "column" : 8,
+        "source_fragment" : "MyEgress"
+      },
+      "init_table" : null,
+      "tables" : [],
+      "action_profiles" : [],
+      "conditionals" : []
+    }
+  ],
+  "checksums" : [
+    {
+      "name" : "cksum",
+      "id" : 0,
+      "source_info" : {
+        "filename" : "p4/ingress.p4",
+        "line" : 270,
+        "column" : 8,
+        "source_fragment" : "update_checksum( ..."
+      },
+      "target" : ["ipv4", "hdrChecksum"],
+      "type" : "generic",
+      "calculation" : "calc",
+      "verify" : false,
+      "update" : true,
+      "if_cond" : {
+        "type" : "expression",
+        "value" : {
+          "op" : "d2b",
+          "left" : null,
+          "right" : {
+            "type" : "field",
+            "value" : ["ipv4", "$valid$"]
+          }
+        }
+      }
+    }
+  ],
+  "force_arith" : [],
+  "extern_instances" : [],
+  "field_aliases" : [
+    [
+      "queueing_metadata.enq_timestamp",
+      ["standard_metadata", "enq_timestamp"]
+    ],
+    [
+      "queueing_metadata.enq_qdepth",
+      ["standard_metadata", "enq_qdepth"]
+    ],
+    [
+      "queueing_metadata.deq_timedelta",
+      ["standard_metadata", "deq_timedelta"]
+    ],
+    [
+      "queueing_metadata.deq_qdepth",
+      ["standard_metadata", "deq_qdepth"]
+    ],
+    [
+      "intrinsic_metadata.ingress_global_timestamp",
+      ["standard_metadata", "ingress_global_timestamp"]
+    ],
+    [
+      "intrinsic_metadata.egress_global_timestamp",
+      ["standard_metadata", "egress_global_timestamp"]
+    ],
+    [
+      "intrinsic_metadata.mcast_grp",
+      ["standard_metadata", "mcast_grp"]
+    ],
+    [
+      "intrinsic_metadata.egress_rid",
+      ["standard_metadata", "egress_rid"]
+    ],
+    [
+      "intrinsic_metadata.priority",
+      ["standard_metadata", "priority"]
+    ]
+  ],
+  "program" : "p4/ingress.p4",
+  "__meta__" : {
+    "version" : [2, 23],
+    "compiler" : "https://github.com/p4lang/p4c"
+  }
+}

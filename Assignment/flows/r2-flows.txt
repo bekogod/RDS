@@ -1,0 +1,4 @@
+reset_state
+table_set_default label_forwarding drop
+table_add label_forwarding pop_and_forward 0x2020 => 2 aa:00:00:00:03:01 aa:00:00:00:02:02
+table_add label_forwarding pop_and_forward 0x2010 => 1 aa:00:00:00:01:02 aa:00:00:00:02:01

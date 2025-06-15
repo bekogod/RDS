@@ -1,0 +1,54 @@
+pkg_info {
+  arch: "v1model"
+}
+tables {
+  preamble {
+    id: 42138636
+    name: "MyIngress.label_forwarding"
+    alias: "label_forwarding"
+  }
+  match_fields {
+    id: 1
+    name: "hdr.mslp_labels[0].label"
+    bitwidth: 16
+    match_type: EXACT
+  }
+  action_refs {
+    id: 21936604
+  }
+  action_refs {
+    id: 25652968
+  }
+  size: 10
+}
+actions {
+  preamble {
+    id: 25652968
+    name: "MyIngress.drop"
+    alias: "drop"
+  }
+}
+actions {
+  preamble {
+    id: 21936604
+    name: "MyIngress.pop_and_forward"
+    alias: "pop_and_forward"
+  }
+  params {
+    id: 1
+    name: "port"
+    bitwidth: 9
+  }
+  params {
+    id: 2
+    name: "dst_mac"
+    bitwidth: 48
+  }
+  params {
+    id: 3
+    name: "src_mac"
+    bitwidth: 48
+  }
+}
+type_info {
+}
